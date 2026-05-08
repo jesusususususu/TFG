@@ -22,5 +22,11 @@ public class MenuActivity extends AppCompatActivity {
             Intent intent = new Intent(MenuActivity.this, IngredientesActivity.class);
             startActivity(intent);
         });
+
+        findViewById(R.id.btnAlmacen).setOnClickListener(v -> {
+            // Crea la "orden" para abrir la nueva pantalla
+            Intent intent = new Intent(MenuActivity.this, AlmacenActivity.class);
+            startActivity(intent);
+        });
     }
 }
