@@ -13,36 +13,12 @@
         android:id="@+id/tvTituloIngredientes"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="¿Qué tienes en la nevera?"
+        android:text="Recetas según tu almacén"
         android:textSize="22sp"
         android:textStyle="bold"
         android:textColor="#333333"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
-    <EditText
-        android:id="@+id/etIngredientes"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Ej: huevo, queso, tomate..."
-        android:layout_marginTop="16dp"
-        android:background="@android:drawable/editbox_background"
-        android:padding="12dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvTituloIngredientes" />
-
-    <Button
-        android:id="@+id/btnBuscar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Buscar Recetas"
-        android:layout_marginTop="12dp"
-        android:backgroundTint="#4CAF50"
-        android:textColor="#FFFFFF"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/etIngredientes" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerFiltrado"
@@ -52,7 +28,17 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnBuscar"
+        app:layout_constraintTop_toBottomOf="@+id/tvTituloIngredientes"
         tools:listitem="@layout/item_receta" />
 
+    <Button
+        android:id="@+id/btnVolverMenu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Volver al Menú"
+        android:backgroundTint="#9E9E9E"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

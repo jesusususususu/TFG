@@ -48,7 +48,9 @@ public class MainActivity extends AppCompatActivity {
                 7,
                 R.drawable.ensalada
         ));
-
+        findViewById(R.id.btnVolverMenu).setOnClickListener(v -> {
+            finish(); // Esto cierra la pantalla actual y te devuelve automáticamente al Menú
+        });
         RecetaAdapter adapter = new RecetaAdapter(listaRecetas, this);
         recyclerView.setAdapter(adapter);
     }

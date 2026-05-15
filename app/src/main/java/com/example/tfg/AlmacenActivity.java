@@ -5,11 +5,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
@@ -25,43 +22,53 @@ public class AlmacenActivity extends AppCompatActivity {
     private Button btnAnadir;
     private RecyclerView rvAlmacen;
 
-    // El "camarero" que gestiona la lista y los datos
     private IngredienteAdapter adapter;
     private List<IngredienteAlmacen> listaIngredientes = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_almacen);
 
-        // Ajuste de márgenes para el diseño
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        // 1. Inicializar la base de datos
+        // 1. Inicializar la base de datos Room con protección de migración
         db = Room.databaseBuilder(getApplicationContext(),
-                AppDatabase.class, "base-recetas").build();
+                        AppDatabase.class, "base-recetas")
+                .fallbackToDestructiveMigration() // Evita que la app se cierre por cambios en la BD
+                .build();
 
-        // 2. Vincular vistas del XML
+        // 2. Vincular vistas
         etNombre = findViewById(R.id.etNombre);
         etCantidad = findViewById(R.id.etCantidad);
         etUnidad = findViewById(R.id.etUnidad);
         btnAnadir = findViewById(R.id.btnAnadirReal);
         rvAlmacen = findViewById(R.id.rvAlmacen);
 
-        // 3. Configurar el RecyclerView (La Lista)
+        // 3. Configurar el RecyclerView
         rvAlmacen.setLayoutManager(new LinearLayoutManager(this));
         adapter = new IngredienteAdapter(listaIngredientes);
         rvAlmacen.setAdapter(adapter);
 
-        // 4. Cargar los datos que ya existen al entrar
+        // Lógica para BORRAR al mantener pulsado
+        adapter.setOnLongClickListener(ingrediente -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Eliminar producto")
+                    .setMessage("¿Quieres eliminar " + ingrediente.getNombre() + " del almacén?")
+                    .setPositiveButton("Eliminar", (dialog, which) -> {
+                        Executors.newSingleThreadExecutor().execute(() -> {
+                            db.ingredienteDao().eliminar(ingrediente);
+                            actualizarLista();
+                            runOnUiThread(() ->
+                                    Toast.makeText(this, "Eliminado correctamente", Toast.LENGTH_SHORT).show()
+                            );
+                        });
+                    })
+                    .setNegativeButton("Cancelar", null)
+                    .show();
+        });
+
         actualizarLista();
 
-        // 5. Lógica del botón Añadir
+        // Botón Añadir
         btnAnadir.setOnClickListener(v -> {
             String nombre = etNombre.getText().toString().trim();
             String cantStr = etCantidad.getText().toString().trim();
@@ -69,35 +76,29 @@ public class AlmacenActivity extends AppCompatActivity {
 
             if (!nombre.isEmpty() && !cantStr.isEmpty()) {
                 int cantidad = Integer.parseInt(cantStr);
-
                 Executors.newSingleThreadExecutor().execute(() -> {
-                    // Creamos el nuevo ingrediente
+                    // Usamos R.drawable.tortilla como imagen por defecto para el almacén
                     IngredienteAlmacen nuevo = new IngredienteAlmacen(nombre, cantidad, unidad, R.drawable.tortilla);
-
-                    // Lo guardamos en la base de datos
                     db.ingredienteDao().insertar(nuevo);
-
-                    // Volvemos al hilo principal para actualizar la pantalla
                     runOnUiThread(() -> {
-                        Toast.makeText(this, nombre + " guardado", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Añadido: " + nombre, Toast.LENGTH_SHORT).show();
                         limpiarFormulario();
-                        // Refrescamos la lista para que aparezca el nuevo
                         actualizarLista();
                     });
                 });
             } else {
-                Toast.makeText(this, "Rellena nombre y cantidad", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Completa los campos", Toast.LENGTH_SHORT).show();
             }
+        });
+
+        findViewById(R.id.btnVolverMenu).setOnClickListener(v -> {
+            finish(); // Esto cierra la pantalla actual y te devuelve automáticamente al Menú
         });
     }
 
-    // Método para sacar los datos de Room y dárselos al Adapter
     private void actualizarLista() {
         Executors.newSingleThreadExecutor().execute(() -> {
-            // Obtenemos todo de la base de datos
             List<IngredienteAlmacen> listaDesdeDB = db.ingredienteDao().obtenerTodo();
-
-            // Le decimos al adapter que pinte los nuevos datos
             runOnUiThread(() -> {
                 adapter.setIngredientes(listaDesdeDB);
             });
@@ -110,4 +111,5 @@ public class AlmacenActivity extends AppCompatActivity {
         etUnidad.setText("");
         etNombre.requestFocus();
     }
+
 }
