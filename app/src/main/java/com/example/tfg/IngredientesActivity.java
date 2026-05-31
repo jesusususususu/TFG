@@ -22,25 +22,17 @@ public class IngredientesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ingredientes);
 
-        // 1. Inicializar base de datos con protección
-        db = Room.databaseBuilder(getApplicationContext(),
-                        AppDatabase.class, "base-recetas")
+        db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "base-recetas")
                 .fallbackToDestructiveMigration()
                 .build();
 
-        // 2. Vincular vista del Recycler
         recycler = findViewById(R.id.recyclerFiltrado);
         recycler.setLayoutManager(new LinearLayoutManager(this));
 
-        // 3. Cargar la lista maestra de recetas
         cargarDatos();
-
-        // 4. LÓGICA AUTOMÁTICA: Filtrar nada más entrar
         filtrarSegunAlmacen();
 
-        findViewById(R.id.btnVolverMenu).setOnClickListener(v -> {
-            finish(); // Esto cierra la pantalla actual y te devuelve automáticamente al Menú
-        });
+        findViewById(R.id.btnVolverMenu).setOnClickListener(v -> finish());
     }
 
     private void cargarDatos() {
@@ -52,25 +44,37 @@ public class IngredientesActivity extends AppCompatActivity {
 
     private void filtrarSegunAlmacen() {
         Executors.newSingleThreadExecutor().execute(() -> {
-            // Coger ingredientes de Room
             List<String> misIngredientes = db.ingredienteDao().obtenerNombresAlmacen();
             List<Receta> filtradas = new ArrayList<>();
 
-            // Comparar
-            for (Receta r : todasLasRecetas) {
-                for (String ingAlmacen : misIngredientes) {
-                    if (r.getIngredientes().toLowerCase().contains(ingAlmacen.toLowerCase())) {
-                        if (!filtradas.contains(r)) {
-                            filtradas.add(r);
+            for (Receta receta : todasLasRecetas) {
+                // Separamos los ingredientes de la receta por comas y limpiamos espacios
+                String[] ingRecetaArray = receta.getIngredientes().split(",");
+
+                boolean contieneAlMenosUno = false;
+                for (String ingReceta : ingRecetaArray) {
+                    String ingRecetaLimpio = ingReceta.trim().toLowerCase();
+
+                    for (String ingAlmacen : misIngredientes) {
+                        String ingAlmacenLimpio = ingAlmacen.trim().toLowerCase();
+
+                        // Comprobación bidireccional (ej: "tomate" está en "tomates" o viceversa)
+                        if (ingRecetaLimpio.contains(ingAlmacenLimpio) || ingAlmacenLimpio.contains(ingRecetaLimpio)) {
+                            contieneAlMenosUno = true;
+                            break;
                         }
                     }
+                    if (contieneAlMenosUno) break;
+                }
+
+                if (contieneAlMenosUno) {
+                    filtradas.add(receta);
                 }
             }
 
-            // Mostrar resultados
             runOnUiThread(() -> {
                 if (filtradas.isEmpty()) {
-                    Toast.makeText(this, "Añade ingredientes al almacén para ver sugerencias", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "No hay recetas exactas para tus ingredientes", Toast.LENGTH_LONG).show();
                 }
                 adapter = new RecetaAdapter(filtradas, this);
                 recycler.setAdapter(adapter);

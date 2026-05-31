@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:background="#FDFDFD">
 
     <LinearLayout
         android:orientation="vertical"
@@ -14,16 +15,18 @@
         <ImageView
             android:id="@+id/imgDetalle"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="220dp"
             android:scaleType="centerCrop"
+            android:clipToOutline="true"
             tools:src="@tools:sample/backgrounds/scenic"/>
 
         <TextView
             android:id="@+id/txtNombreDetalle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="22sp"
-            android:layout_marginTop="8dp"
+            android:textSize="24sp"
+            android:layout_marginTop="12dp"
+            android:textColor="#212121"
             android:textStyle="bold"
             tools:text="Nombre de la Receta"/>
 
@@ -32,29 +35,45 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="#757575"
-            tools:text="30 minutos"/>
+            android:textSize="14sp"
+            android:layout_marginTop="4dp"
+            tools:text="⏱️ 30 minutos"/>
 
         <TextView
-            android:id="@+id/txtIngredientes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Ingredientes"
+            android:layout_marginTop="20dp"
+            android:text="Ingredientes necesarios:"
+            android:textColor="#5E35B1"
+            android:textSize="16sp"
             android:textStyle="bold"/>
 
         <TextView
             android:id="@+id/txtListaIngredientes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textSize="15sp"
+            android:textColor="#424242"
             tools:text="- Harina\n- Huevos"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Pasos de preparación:"
+            android:textColor="#5E35B1"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
 
         <TextView
             android:id="@+id/txtPasos"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Pasos"
-            android:textStyle="bold"/>
+            android:layout_marginTop="6dp"
+            android:textSize="15sp"
+            android:textColor="#424242"
+            tools:text="1. Mezclar todo.\n2. Hornear."/>
 
     </LinearLayout>
 </ScrollView>
