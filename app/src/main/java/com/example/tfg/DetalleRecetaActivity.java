@@ -17,7 +17,7 @@ public class DetalleRecetaActivity extends AppCompatActivity {
         setContentView(R.layout.activity_detalle_receta);
 
         nombre = findViewById(R.id.txtNombreDetalle);
-        ingredientes = findViewById(R.id.txtIngredientes);
+        ingredientes = findViewById(R.id.txtListaIngredientes);
         pasos = findViewById(R.id.txtPasos);
         tiempo = findViewById(R.id.txtTiempoDetalle);
         imagen = findViewById(R.id.imgDetalle);
