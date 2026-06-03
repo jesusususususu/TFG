@@ -1,20 +1,21 @@
 package com.example.tfg;
 
 import android.os.Bundle;
-import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
-import java.util.ArrayList;
+
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Executors;
+import java.util.Map;
 
 public class IngredientesActivity extends AppCompatActivity {
 
-    private RecyclerView recycler;
+    private RecyclerView recyclerFiltrado;
     private RecetaAdapter adapter;
-    private List<Receta> todasLasRecetas;
+    private List<Receta> listaRecetas;
     private AppDatabase db;
 
     @Override
@@ -22,63 +23,87 @@ public class IngredientesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ingredientes);
 
-        db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "base-recetas")
-                .fallbackToDestructiveMigration()
-                .build();
+        recyclerFiltrado = findViewById(R.id.recyclerFiltrado);
+        recyclerFiltrado.setLayoutManager(new LinearLayoutManager(this));
 
-        recycler = findViewById(R.id.recyclerFiltrado);
-        recycler.setLayoutManager(new LinearLayoutManager(this));
+        db = AppDatabase.getInstance(this);
 
-        cargarDatos();
-        filtrarSegunAlmacen();
+        listaRecetas = RecetasData.obtenerRecetas();
 
-        findViewById(R.id.btnVolverMenu).setOnClickListener(v -> finish());
+        aplicarAlgoritmoInteligente();
+
+        findViewById(R.id.btnVolverMenu)
+                .setOnClickListener(v -> finish());
     }
 
-    private void cargarDatos() {
-        todasLasRecetas = new ArrayList<>();
-        todasLasRecetas.add(new Receta("Tortilla francesa", "Huevos, sal", "Batir y cuajar", 5, R.drawable.tortilla));
-        todasLasRecetas.add(new Receta("Sandwich mixto", "Pan, jamon, queso", "Tostar el pan", 10, R.drawable.sandwich));
-        todasLasRecetas.add(new Receta("Ensalada rápida", "Lechuga, tomate", "Mezclar vegetales", 7, R.drawable.ensalada));
-    }
+    private void aplicarAlgoritmoInteligente() {
 
-    private void filtrarSegunAlmacen() {
-        Executors.newSingleThreadExecutor().execute(() -> {
-            List<String> misIngredientes = db.ingredienteDao().obtenerNombresAlmacen();
-            List<Receta> filtradas = new ArrayList<>();
+        List<IngredienteAlmacen> almacen =
+                db.ingredienteDao().obtenerTodo();
 
-            for (Receta receta : todasLasRecetas) {
-                // Separamos los ingredientes de la receta por comas y limpiamos espacios
-                String[] ingRecetaArray = receta.getIngredientes().split(",");
+        Map<String, Double> miAlmacenMap = new HashMap<>();
 
-                boolean contieneAlMenosUno = false;
-                for (String ingReceta : ingRecetaArray) {
-                    String ingRecetaLimpio = ingReceta.trim().toLowerCase();
+        for (IngredienteAlmacen ing : almacen) {
 
-                    for (String ingAlmacen : misIngredientes) {
-                        String ingAlmacenLimpio = ingAlmacen.trim().toLowerCase();
+            if (ing.getNombre() != null) {
 
-                        // Comprobación bidireccional (ej: "tomate" está en "tomates" o viceversa)
-                        if (ingRecetaLimpio.contains(ingAlmacenLimpio) || ingAlmacenLimpio.contains(ingRecetaLimpio)) {
-                            contieneAlMenosUno = true;
-                            break;
-                        }
+                miAlmacenMap.put(
+                        ing.getNombre().toLowerCase().trim(),
+                        (double) ing.getCantidad()
+                );
+            }
+        }
+
+        Map<Receta, Double> viabilidadRecetas = new HashMap<>();
+
+        for (Receta receta : listaRecetas) {
+
+            Map<String, Double> requisitos =
+                    receta.getMapaIngredientes();
+
+            if (requisitos.isEmpty()) {
+
+                viabilidadRecetas.put(receta, 0.0);
+                continue;
+            }
+
+            double totalIngredientes = requisitos.size();
+            double puntos = 0.0;
+
+            for (Map.Entry<String, Double> req : requisitos.entrySet()) {
+
+                String nombreReq = req.getKey();
+                double cantidadNecesaria = req.getValue();
+
+                if (miAlmacenMap.containsKey(nombreReq)) {
+
+                    double cantidadTengo =
+                            miAlmacenMap.get(nombreReq);
+
+                    if (cantidadTengo >= cantidadNecesaria) {
+                        puntos += 1.0;
+                    } else {
+                        puntos += cantidadTengo / cantidadNecesaria;
                     }
-                    if (contieneAlMenosUno) break;
-                }
-
-                if (contieneAlMenosUno) {
-                    filtradas.add(receta);
                 }
             }
 
-            runOnUiThread(() -> {
-                if (filtradas.isEmpty()) {
-                    Toast.makeText(this, "No hay recetas exactas para tus ingredientes", Toast.LENGTH_LONG).show();
-                }
-                adapter = new RecetaAdapter(filtradas, this);
-                recycler.setAdapter(adapter);
-            });
-        });
+            double porcentaje =
+                    puntos / totalIngredientes;
+
+            viabilidadRecetas.put(receta, porcentaje);
+        }
+
+        Collections.sort(
+                listaRecetas,
+                (r1, r2) ->
+                        Double.compare(
+                                viabilidadRecetas.get(r2),
+                                viabilidadRecetas.get(r1)
+                        )
+        );
+
+        adapter = new RecetaAdapter(listaRecetas);
+        recyclerFiltrado.setAdapter(adapter);
     }
 }

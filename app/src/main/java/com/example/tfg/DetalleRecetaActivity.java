@@ -3,13 +3,12 @@ package com.example.tfg;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.appcompat.app.AppCompatActivity;
 
 public class DetalleRecetaActivity extends AppCompatActivity {
 
-    TextView nombre, ingredientes, pasos, tiempo;
-    ImageView imagen;
+    private TextView nombre, ingredientes, pasos, tiempo;
+    private ImageView imagen;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,5 +30,8 @@ public class DetalleRecetaActivity extends AppCompatActivity {
             tiempo.setText(receta.getTiempoPreparacion() + " min");
             imagen.setImageResource(receta.getImagenResurce());
         }
+
+        // LÓGICA DEL BOTÓN VOLVER: Cierra la pantalla actual al hacer clic
+        findViewById(R.id.btnVolverRecetas).setOnClickListener(v -> finish());
     }
 }
