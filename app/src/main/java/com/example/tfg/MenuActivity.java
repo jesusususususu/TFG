@@ -15,27 +15,33 @@ public class MenuActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
 
-        // Enlazamos con los IDs exactos del nuevo XML en cuadrícula
+        // Enlazamos con los IDs exactos del nuevo XML
         cardSugeridas = findViewById(R.id.cardSugeridas);
         cardPorIngredientes = findViewById(R.id.cardPorIngredientes);
         cardAlmacen = findViewById(R.id.cardAlmacen);
 
         // Configuración del clic para ir a Recetas Diarias (MainActivity)
-        cardSugeridas.setOnClickListener(v -> {
-            Intent intent = new Intent(MenuActivity.this, MainActivity.class);
-            startActivity(intent);
-        });
+        if (cardSugeridas != null) {
+            cardSugeridas.setOnClickListener(v -> {
+                Intent intent = new Intent(MenuActivity.this, MainActivity.class);
+                startActivity(intent);
+            });
+        }
 
         // Configuración del clic para ir a Búsqueda por Ingredientes (IngredientesActivity)
-        cardPorIngredientes.setOnClickListener(v -> {
-            Intent intent = new Intent(MenuActivity.this, IngredientesActivity.class);
-            startActivity(intent);
-        });
+        if (cardPorIngredientes != null) {
+            cardPorIngredientes.setOnClickListener(v -> {
+                Intent intent = new Intent(MenuActivity.this, IngredientesActivity.class);
+                startActivity(intent);
+            });
+        }
 
         // Configuración del clic para ir a Mi Almacén (AlmacenActivity)
-        cardAlmacen.setOnClickListener(v -> {
-            Intent intent = new Intent(MenuActivity.this, AlmacenActivity.class);
-            startActivity(intent);
-        });
+        if (cardAlmacen != null) {
+            cardAlmacen.setOnClickListener(v -> {
+                Intent intent = new Intent(MenuActivity.this, AlmacenActivity.class);
+                startActivity(intent);
+            });
+        }
     }
 }

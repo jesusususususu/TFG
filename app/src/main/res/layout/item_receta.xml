@@ -49,11 +49,24 @@
             android:textSize="14sp"
             android:layout_marginTop="4dp"
             android:layout_marginStart="16dp"
-            android:layout_marginBottom="16dp"
             tools:text="⏱️ 5 min"
             app:layout_constraintTop_toBottomOf="@+id/txtNombre"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/txtEstadoIngredientes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:layout_marginTop="4dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="12dp"
+            tools:text="● ¡Puedes cocinarla ya!"
+            tools:textColor="#4CAF50"
+            app:layout_constraintTop_toBottomOf="@+id/txtTiempo"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
         <TextView
             android:layout_width="wrap_content"

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -74,6 +75,19 @@
             android:textSize="15sp"
             android:textColor="#424242"
             tools:text="1. Mezclar todo.\n2. Hornear."/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnVolverRecetas"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:text="Volver a Recetas"
+            android:textAllCaps="false"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="16dp"
+            android:layout_gravity="center_horizontal"
+            android:backgroundTint="#EAEAEA"
+            android:textColor="#5E35B1"
+            app:cornerRadius="25dp" />
 
     </LinearLayout>
 </ScrollView>
