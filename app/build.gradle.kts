@@ -38,6 +38,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation("com.google.code.gson:gson:2.10.1")
 
     // --- LIBRERÍAS DE ROOM (BASE DE DATOS) ---
     val room_version = "2.6.1"
