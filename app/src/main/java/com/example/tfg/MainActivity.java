@@ -1,55 +1,77 @@
 package com.example.tfg;
 
 import android.os.Bundle;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private RecyclerView recyclerView;
+    private RecyclerView recyclerRecetas;
+    private RecetaAdapter adapter;
     private List<Receta> listaRecetas;
+    private AppDatabase db;
+    private Map<Integer, Integer> estadoRecetas;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        recyclerView = findViewById(R.id.recyclerRecetas);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerRecetas = findViewById(R.id.recyclerRecetas);
+        recyclerRecetas.setLayoutManager(new LinearLayoutManager(this));
 
-        listaRecetas = new ArrayList<>();
+        db = AppDatabase.getInstance(this);
+        listaRecetas = db.recetaDao().obtenerTodas();
 
-        // RECETAS DE EJEMPLO
-        listaRecetas.add(new Receta(
-                "Tortilla francesa",
-                "Huevos, sal",
-                "Batir huevos y cocinar en sartén",
-                5,
-                R.drawable.tortilla
-        ));
 
-        listaRecetas.add(new Receta(
-                "Sandwich mixto",
-                "Pan, jamón, queso",
-                "Montar y tostar en sartén",
-                10,
-                R.drawable.sandwich
-        ));
+        estadoRecetas = new HashMap<>();
 
-        listaRecetas.add(new Receta(
-                "Ensalada rápida",
-                "Lechuga, tomate, aceite",
-                "Cortar y mezclar todo",
-                7,
-                R.drawable.ensalada
-        ));
 
-        RecetaAdapter adapter = new RecetaAdapter(listaRecetas, this);
-        recyclerView.setAdapter(adapter);
+        List<IngredienteAlmacen> almacen = db.ingredienteDao().obtenerTodo();
+
+        Map<String, Double> miAlmacenMap = new HashMap<>();
+        for (IngredienteAlmacen ing : almacen) {
+            if (ing.getNombre() != null) {
+                miAlmacenMap.put(
+                        ing.getNombre().toLowerCase().trim(),
+                        (double) ing.getCantidad()
+                );
+            }
+        }
+
+
+        for (Receta receta : listaRecetas) {
+            int coincidencias = 0;
+
+            if (receta.getMapaIngredientes() != null) {
+                for (String ing : receta.getMapaIngredientes().keySet()) {
+                    if (miAlmacenMap.containsKey(ing)) {
+                        coincidencias++;
+                    }
+                }
+            }
+            estadoRecetas.put(receta.getId(), coincidencias);
+        }
+
+
+        Collections.shuffle(listaRecetas);
+        if (listaRecetas.size() > 3) {
+            listaRecetas = new ArrayList<>(listaRecetas.subList(0, 3));
+        }
+
+
+        adapter = new RecetaAdapter(listaRecetas, estadoRecetas);
+        recyclerRecetas.setAdapter(adapter);
+
+        if (findViewById(R.id.btnVolverMenu) != null) {
+            findViewById(R.id.btnVolverMenu).setOnClickListener(v -> finish());
+        }
     }
 }

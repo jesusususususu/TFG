@@ -1,76 +1,113 @@
 package com.example.tfg;
 
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class IngredientesActivity extends AppCompatActivity {
 
-    private EditText etIngredientes;
-    private RecyclerView recycler;
+    private RecyclerView recyclerFiltrado;
     private RecetaAdapter adapter;
-    private List<Receta> todasLasRecetas;
+    private List<Receta> listaRecetas;
+    private AppDatabase db;
+
+
+    private Map<Integer, Integer> estadoRecetas;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ingredientes);
 
-        // 1. Vincular vistas
-        etIngredientes = findViewById(R.id.etIngredientes);
-        recycler = findViewById(R.id.recyclerFiltrado);
-        Button btnBuscar = findViewById(R.id.btnBuscar);
+        recyclerFiltrado = findViewById(R.id.recyclerFiltrado);
+        recyclerFiltrado.setLayoutManager(new LinearLayoutManager(this));
 
-        // 2. Configurar RecyclerView
-        recycler.setLayoutManager(new LinearLayoutManager(this));
+        db = AppDatabase.getInstance(this);
+        listaRecetas = db.recetaDao().obtenerTodas();
 
-        // 3. Cargar la base de datos de recetas
-        cargarDatos();
 
-        // 4. Configurar el clic del botón
-        btnBuscar.setOnClickListener(v -> {
-            String textoBusqueda = etIngredientes.getText().toString().trim();
+        estadoRecetas = new HashMap<>();
 
-            if (textoBusqueda.isEmpty()) {
-                Toast.makeText(this, "Escribe algún ingrediente", Toast.LENGTH_SHORT).show();
-            } else {
-                filtrar(textoBusqueda);
-            }
-        });
+        aplicarAlgoritmoInteligente();
+
+        if (findViewById(R.id.btnVolverMenu) != null) {
+            findViewById(R.id.btnVolverMenu).setOnClickListener(v -> finish());
+        }
     }
 
-    private void cargarDatos() {
-        todasLasRecetas = new ArrayList<>();
-        // IMPORTANTE: Asegúrate de que los nombres coincidan con tus strings de ingredientes
-        todasLasRecetas.add(new Receta("Tortilla francesa", "Huevos, sal", "Batir y cuajar", 5, R.drawable.tortilla));
-        todasLasRecetas.add(new Receta("Sandwich mixto", "Pan, jamon, queso", "Tostar el pan", 10, R.drawable.sandwich));
-        todasLasRecetas.add(new Receta("Ensalada rápida", "Lechuga, tomate", "Mezclar vegetales", 7, R.drawable.ensalada));
-    }
+    private void aplicarAlgoritmoInteligente() {
+        List<IngredienteAlmacen> almacen = db.ingredienteDao().obtenerTodo();
+        Map<String, Double> miAlmacenMap = new HashMap<>();
 
-    private void filtrar(String texto) {
-        List<Receta> filtradas = new ArrayList<>();
-
-        for (Receta r : todasLasRecetas) {
-            // Comprobamos si el ingrediente está en la receta (en minúsculas para evitar errores)
-            if (r.getIngredientes().toLowerCase().contains(texto.toLowerCase())) {
-                filtradas.add(r);
+        for (IngredienteAlmacen ing : almacen) {
+            if (ing.getNombre() != null) {
+                miAlmacenMap.put(
+                        ing.getNombre().toLowerCase().trim(),
+                        (double) ing.getCantidad()
+                );
             }
         }
 
-        if (filtradas.isEmpty()) {
-            Toast.makeText(this, "No hay recetas con ese ingrediente", Toast.LENGTH_SHORT).show();
+        List<Receta> recetasFiltradas = new ArrayList<>();
+        Map<Receta, Double> viabilidadRecetas = new HashMap<>();
+
+        for (Receta receta : listaRecetas) {
+            Map<String, Double> requisitos = receta.getMapaIngredientes();
+
+            if (requisitos == null || requisitos.isEmpty()) {
+                continue;
+            }
+
+            int coincidencias = 0;
+            double puntos = 0;
+            int totalIngredientes = requisitos.size();
+
+            for (Map.Entry<String, Double> req : requisitos.entrySet()) {
+                String nombreReq = req.getKey();
+                double cantidadNecesaria = req.getValue();
+
+                if (miAlmacenMap.containsKey(nombreReq)) {
+                    coincidencias++;
+
+                    double cantidadTengo = miAlmacenMap.get(nombreReq);
+                    if (cantidadTengo >= cantidadNecesaria) {
+                        puntos += 1;
+                    } else {
+                        puntos += cantidadTengo / cantidadNecesaria;
+                    }
+                }
+            }
+
+
+            if (coincidencias == 0) {
+                continue;
+            }
+
+
+            estadoRecetas.put(receta.getId(), coincidencias);
+            recetasFiltradas.add(receta);
+
+            double porcentaje = puntos / totalIngredientes;
+            viabilidadRecetas.put(receta, porcentaje);
         }
 
-        // 5. ACTUALIZAR EL ADAPTADOR
-        adapter = new RecetaAdapter(filtradas, this);
-        recycler.setAdapter(adapter);
+
+        Collections.sort(
+                recetasFiltradas,
+                (r1, r2) -> Double.compare(
+                        viabilidadRecetas.get(r2),
+                        viabilidadRecetas.get(r1)
+                )
+        );
+
+        adapter = new RecetaAdapter(recetasFiltradas, estadoRecetas);
+        recyclerFiltrado.setAdapter(adapter);
     }
 }

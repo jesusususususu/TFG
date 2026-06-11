@@ -11,19 +11,19 @@ import java.util.List;
 @Dao
 public interface IngredienteDao {
 
-    // Para dar de alta un producto (ej: añadir huevos)
+
+    @Query("SELECT * FROM almacen")
+    List<IngredienteAlmacen> obtenerTodo();
+
+
     @Insert
     void insertar(IngredienteAlmacen ingrediente);
 
-    // Para actualizar la cantidad si compramos más
-    @Update
-    void actualizar(IngredienteAlmacen ingrediente);
 
-    // Para cuando gastamos un producto del todo
     @Delete
     void eliminar(IngredienteAlmacen ingrediente);
 
-    // Esta es la joya: devuelve todo lo que tienes en el almacén
-    @Query("SELECT * FROM almacen")
-    List<IngredienteAlmacen> obtenerTodo();
+
+    @Query("SELECT nombre FROM almacen")
+    List<String> obtenerNombresAlmacen();
 }
