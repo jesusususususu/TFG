@@ -15,15 +15,12 @@ public interface IngredienteDao {
     @Insert
     void insertar(IngredienteAlmacen ingrediente);
 
-    // Para actualizar la cantidad si compramos más
-    @Update
-    void actualizar(IngredienteAlmacen ingrediente);
 
     // Para cuando gastamos un producto del todo
     @Delete
     void eliminar(IngredienteAlmacen ingrediente);
 
-    // Esta es la joya: devuelve todo lo que tienes en el almacén
+
     @Query("SELECT * FROM almacen")
     List<IngredienteAlmacen> obtenerTodo();
 }
