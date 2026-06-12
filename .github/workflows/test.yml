@@ -1,0 +1,24 @@
+name: Java Checkstyle
+
+on:
+  pull_request:
+
+jobs:
+  checkstyle:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Run Checkstyle with Gradle
+        run: ./gradlew checkstyleDebug
