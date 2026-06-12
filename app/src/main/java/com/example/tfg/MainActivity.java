@@ -7,7 +7,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,52 +26,19 @@ public class MainActivity extends AppCompatActivity {
         recyclerRecetas = findViewById(R.id.recyclerRecetas);
         recyclerRecetas.setLayoutManager(new LinearLayoutManager(this));
 
-        db = AppDatabase.getInstance(this);
-        listaRecetas = db.recetaDao().obtenerTodas();
-
-
-        estadoRecetas = new HashMap<>();
-
-
-        List<IngredienteAlmacen> almacen = db.ingredienteDao().obtenerTodo();
-
-        Map<String, Double> miAlmacenMap = new HashMap<>();
-        for (IngredienteAlmacen ing : almacen) {
-            if (ing.getNombre() != null) {
-                miAlmacenMap.put(
-                        ing.getNombre().toLowerCase().trim(),
-                        (double) ing.getCantidad()
-                );
-            }
-        }
-
-
-        for (Receta receta : listaRecetas) {
-            int coincidencias = 0;
-
-            if (receta.getMapaIngredientes() != null) {
-                for (String ing : receta.getMapaIngredientes().keySet()) {
-                    if (miAlmacenMap.containsKey(ing)) {
-                        coincidencias++;
-                    }
-                }
-            }
-            estadoRecetas.put(receta.getId(), coincidencias);
-        }
-
+        listaRecetas = RecetasData.obtenerRecetas();
 
         Collections.shuffle(listaRecetas);
+
         if (listaRecetas.size() > 3) {
             listaRecetas = new ArrayList<>(listaRecetas.subList(0, 3));
         }
 
-
-        adapter = new RecetaAdapter(listaRecetas, estadoRecetas);
+        adapter = new RecetaAdapter(listaRecetas);
         recyclerRecetas.setAdapter(adapter);
 
-        if (findViewById(R.id.btnVolverMenu) != null) {
-            findViewById(R.id.btnVolverMenu).setOnClickListener(v -> finish());
-        }
+        findViewById(R.id.btnVolverMenu)
+                .setOnClickListener(v -> finish());
     }
 }
 

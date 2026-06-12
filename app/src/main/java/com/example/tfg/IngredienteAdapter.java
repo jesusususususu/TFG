@@ -5,16 +5,30 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import java.util.List;
 
 public class IngredienteAdapter extends RecyclerView.Adapter<IngredienteAdapter.ViewHolder> {
 
     private List<IngredienteAlmacen> listaIngredientes;
+    private OnLongClickListener longClickListener;
 
-    public IngredienteAdapter(List<IngredienteAlmacen> lista) {
-        this.listaIngredientes = lista;
+    // 1. Interfaz para el clic largo
+    public interface OnLongClickListener {
+        void onLongClick(IngredienteAlmacen ingrediente);
+    }
+
+    // 2. Método para asignar el listener desde la Activity
+    public void setOnLongClickListener(OnLongClickListener listener) {
+        this.longClickListener = listener;
+    }
+
+    // 3. Constructor
+    public IngredienteAdapter(List<IngredienteAlmacen> listaIngredientes) {
+        this.listaIngredientes = listaIngredientes;
     }
 
     @NonNull
@@ -27,31 +41,51 @@ public class IngredienteAdapter extends RecyclerView.Adapter<IngredienteAdapter.
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         IngredienteAlmacen item = listaIngredientes.get(position);
+
+        // Ponemos el nombre
         holder.tvNombre.setText(item.getNombre());
-        holder.tvDetalle.setText(item.getCantidad() + " " + item.getUnidad());
-        holder.ivImagen.setImageResource(item.getImagenResource());
+
+        // Combinamos Cantidad y Unidad (ej: "500 Gramos")
+        String infoCantidad = item.getCantidad() + " " + item.getUnidad();
+        holder.tvCantidadUnidad.setText(infoCantidad);
+
+        // Imagen
+        holder.ivFoto.setImageResource(item.getImagenResurce());
+
+        // Evento de clic largo para borrar
+        holder.itemView.setOnLongClickListener(v -> {
+            if (longClickListener != null) {
+                longClickListener.onLongClick(item);
+            }
+            return true;
+        });
     }
 
     @Override
     public int getItemCount() {
-        return listaIngredientes.size();
+        return (listaIngredientes != null) ? listaIngredientes.size() : 0;
     }
 
-    // Método para actualizar la lista cuando añadimos algo nuevo
+    // Método para refrescar la lista
     public void setIngredientes(List<IngredienteAlmacen> nuevosIngredientes) {
         this.listaIngredientes = nuevosIngredientes;
         notifyDataSetChanged();
     }
 
+    // 4. Clase ViewHolder corregida con tus IDs del XML
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvNombre, tvDetalle;
-        ImageView ivImagen;
+        TextView tvNombre, tvCantidadUnidad;
+        ImageView ivFoto;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvNombre = itemView.findViewById(R.id.tvNombreIngrediente);
-            tvDetalle = itemView.findViewById(R.id.tvCantidadUnidad);
-            ivImagen = itemView.findViewById(R.id.ivIngrediente);
+            tvCantidadUnidad = itemView.findViewById(R.id.tvCantidadUnidad);
+            ivFoto = itemView.findViewById(R.id.ivIngrediente);
         }
     }
 }
+
+
+
+
