@@ -1,55 +1,47 @@
 package com.example.tfg;
 
 import android.os.Bundle;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private RecyclerView recyclerView;
+    private RecyclerView recyclerRecetas;
+    private RecetaAdapter adapter;
     private List<Receta> listaRecetas;
+    private AppDatabase db;
+    private Map<Integer, Integer> estadoRecetas;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        recyclerView = findViewById(R.id.recyclerRecetas);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerRecetas = findViewById(R.id.recyclerRecetas);
+        recyclerRecetas.setLayoutManager(new LinearLayoutManager(this));
 
-        listaRecetas = new ArrayList<>();
+        listaRecetas = RecetasData.obtenerRecetas();
 
-        // RECETAS DE EJEMPLO
-        listaRecetas.add(new Receta(
-                "Tortilla francesa",
-                "Huevos, sal",
-                "Batir huevos y cocinar en sartén",
-                5,
-                R.drawable.tortilla
-        ));
+        Collections.shuffle(listaRecetas);
 
-        listaRecetas.add(new Receta(
-                "Sandwich mixto",
-                "Pan, jamón, queso",
-                "Montar y tostar en sartén",
-                10,
-                R.drawable.sandwich
-        ));
+        if (listaRecetas.size() > 3) {
+            listaRecetas = new ArrayList<>(listaRecetas.subList(0, 3));
+        }
 
-        listaRecetas.add(new Receta(
-                "Ensalada rápida",
-                "Lechuga, tomate, aceite",
-                "Cortar y mezclar todo",
-                7,
-                R.drawable.ensalada
-        ));
+        adapter = new RecetaAdapter(listaRecetas);
+        recyclerRecetas.setAdapter(adapter);
 
-        RecetaAdapter adapter = new RecetaAdapter(listaRecetas, this);
-        recyclerView.setAdapter(adapter);
+        findViewById(R.id.btnVolverMenu)
+                .setOnClickListener(v -> finish());
     }
 }
+
+
+
+

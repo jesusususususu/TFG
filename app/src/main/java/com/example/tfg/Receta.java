@@ -9,17 +9,12 @@ import java.util.Map;
 
 @Entity(tableName = "recetas")
 public class Receta implements Serializable {
-
-    @PrimaryKey(autoGenerate = true)
-    private int id;
-
     private String nombre;
     private String ingredientesTexto;
     private String pasos;
     private int tiempoPreparacion;
-    private int imagenResource;
+    private int imagenResource; // Nombre unificado
     private Map<String, Double> mapaIngredientes;
-
 
     public Receta(String nombre, String ingredientesTexto, String pasos, int tiempoPreparacion, int imagenResource) {
         this.nombre = nombre;
@@ -31,32 +26,21 @@ public class Receta implements Serializable {
         this.mapaIngredientes = new HashMap<>();
     }
 
-
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-
     public void agregarIngredienteRequisito(String nombreIngrediente, double cantidad) {
         this.mapaIngredientes.put(nombreIngrediente.toLowerCase().trim(), cantidad);
     }
 
+    // GETTERS Y SETTERS CORREGIDOS
     public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
-
-    public String getIngredientesTexto() { return ingredientesTexto; }
-    public void setIngredientesTexto(String ingredientesTexto) { this.ingredientesTexto = ingredientesTexto; }
-
     public String getIngredientes() { return ingredientesTexto; }
-
     public String getPasos() { return pasos; }
     public void setPasos(String pasos) { this.pasos = pasos; }
 
     public int getTiempoPreparacion() { return tiempoPreparacion; }
-    public void setTiempoPreparacion(int tiempoPreparacion) { this.tiempoPreparacion = tiempoPreparacion; }
 
-    public int getImagenResource() { return imagenResource; }
-    public void setImagenResource(int imagenResource) { this.imagenResource = imagenResource; }
-
+    // Fíjate aquí: Añadida la "e" para que se lea Resource
     public int getImagenResurce() { return imagenResource; }
+    public int getImagenResource() { return imagenResource; }
 
     public Map<String, Double> getMapaIngredientes() {
         if (this.mapaIngredientes == null) {
@@ -64,9 +48,4 @@ public class Receta implements Serializable {
         }
         return mapaIngredientes;
     }
-
-    public void setMapaIngredientes(Map<String, Double> mapaIngredientes) {
-        this.mapaIngredientes = mapaIngredientes;
-    }
-}  
-
+}

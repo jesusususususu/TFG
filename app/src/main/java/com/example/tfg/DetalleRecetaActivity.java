@@ -34,7 +34,7 @@ public class DetalleRecetaActivity extends AppCompatActivity {
             imagen.setImageResource(receta.getImagenResurce());
         }
 
-
+        // LÓGICA DEL BOTÓN VOLVER: Cierra la pantalla actual al hacer clic
         findViewById(R.id.btnVolverRecetas).setOnClickListener(v -> finish());
     }
 }

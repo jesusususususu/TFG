@@ -9,28 +9,24 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaViewHolder> {
 
     private final List<Receta> listaRecetas;
-    private final Map<Integer, Integer> estadoRecetas;
 
-    public RecetaAdapter(List<Receta> listaRecetas, Map<Integer, Integer> estadoRecetas) {
+    public RecetaAdapter(List<Receta> listaRecetas) {
         this.listaRecetas = listaRecetas;
-        this.estadoRecetas = estadoRecetas;
     }
 
     @NonNull
     @Override
     public RecetaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_receta, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_receta, parent, false);
         return new RecetaViewHolder(view);
     }
 
@@ -40,27 +36,58 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
 
         holder.txtNombre.setText(receta.getNombre());
         holder.txtTiempo.setText("⏱️ " + receta.getTiempoPreparacion() + " min");
-        holder.imgReceta.setImageResource(receta.getImagenResource());
+        holder.imgReceta.setImageResource(receta.getImagenResurce());
 
+        // Algoritmo para calcular las coincidencias con Room y colorear la etiqueta
+        AppDatabase db = AppDatabase.getInstance(holder.itemView.getContext());
 
-        Integer c = estadoRecetas.get(receta.getId());
-        int coincidencias = (c != null) ? c : 0;
-        int totalIngredientes = receta.getMapaIngredientes().size();
+        // Obtenemos los ingredientes actuales de la base de datos
+        List<IngredienteAlmacen> almacen = db.ingredienteDao().obtenerTodo();
 
+        Map<String, Double> almacenMap = new HashMap<>();
 
-        if (coincidencias == 0) {
-
-            holder.txtEstadoIngredientes.setText("● No tienes ingredientes suficientes");
-            holder.txtEstadoIngredientes.setTextColor(Color.parseColor("#F44336"));
-        } else if (coincidencias == totalIngredientes) {
-            holder.txtEstadoIngredientes.setText("● Puedes cocinarla");
-            holder.txtEstadoIngredientes.setTextColor(Color.parseColor("#4CAF50"));
-        } else {
-            holder.txtEstadoIngredientes.setText("● Te faltan ingredientes");
-            holder.txtEstadoIngredientes.setTextColor(Color.parseColor("#FFC107"));
+        for (IngredienteAlmacen i : almacen) {
+            if (i.getNombre() != null) {
+                almacenMap.put(
+                        i.getNombre().toLowerCase().trim(),
+                        (double) i.getCantidad()
+                );
+            }
         }
 
+        int totalRequisitos = receta.getMapaIngredientes().size();
+        int ingredientesCompletos = 0;
+        int ingredientesParciales = 0;
 
+        for (Map.Entry<String, Double> req : receta.getMapaIngredientes().entrySet()) {
+            String nombreReq = req.getKey();
+            double cantidadNecesaria = req.getValue();
+
+            if (almacenMap.containsKey(nombreReq)) {
+                if (almacenMap.get(nombreReq) >= cantidadNecesaria) {
+                    ingredientesCompletos++;
+                } else {
+                    ingredientesParciales++;
+                }
+            }
+        }
+
+        // Aplicamos los textos y colores exactos que propusimos
+        if (totalRequisitos == 0) {
+            holder.txtEstadoIngredientes.setText("● Sin requisitos especificados");
+            holder.txtEstadoIngredientes.setTextColor(Color.parseColor("#757575")); // Gris
+        } else if (ingredientesCompletos == totalRequisitos) {
+            holder.txtEstadoIngredientes.setText("● ¡Puedes cocinarla ya!");
+            holder.txtEstadoIngredientes.setTextColor(Color.parseColor("#4CAF50")); // Verde
+        } else if (ingredientesCompletos > 0 || ingredientesParciales > 0) {
+            holder.txtEstadoIngredientes.setText("● Te faltan ingredientes o cantidad");
+            holder.txtEstadoIngredientes.setTextColor(Color.parseColor("#FF9800")); // Naranja
+        } else {
+            holder.txtEstadoIngredientes.setText("● Sin ingredientes en el almacén");
+            holder.txtEstadoIngredientes.setTextColor(Color.parseColor("#F44336")); // Rojo
+        }
+
+        // Clic en la tarjeta para abrir la actividad de detalles de la receta
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(holder.itemView.getContext(), DetalleRecetaActivity.class);
             intent.putExtra("receta", receta);
@@ -74,9 +101,7 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
     }
 
     public static class RecetaViewHolder extends RecyclerView.ViewHolder {
-        TextView txtNombre;
-        TextView txtTiempo;
-        TextView txtEstadoIngredientes;
+        TextView txtNombre, txtTiempo, txtEstadoIngredientes;
         ImageView imgReceta;
 
         public RecetaViewHolder(@NonNull View itemView) {
