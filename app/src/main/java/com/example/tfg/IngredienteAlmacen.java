@@ -14,7 +14,7 @@ public class IngredienteAlmacen implements Serializable {
     private String nombre;
     private int cantidad;
     private String unidad;
-    private int imagenResurce;
+    private int imagenResurce; // El ID de la imagen de la receta
 
     public IngredienteAlmacen(String nombre, int cantidad, String unidad, int imagenResurce) {
         this.nombre = nombre;
@@ -23,7 +23,7 @@ public class IngredienteAlmacen implements Serializable {
         this.imagenResurce = imagenResurce;
     }
 
-
+    // Getters y Setters (Necesarios para Room)
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -36,7 +36,7 @@ public class IngredienteAlmacen implements Serializable {
     public String getUnidad() { return unidad; }
     public void setUnidad(String unidad) { this.unidad = unidad; }
 
-
+    // ESTE ES EL QUE TE FALTABA
     public int getImagenResurce() { return imagenResurce; }
     public void setImagenResurce(int imagenResurce) { this.imagenResurce = imagenResurce; }
 }

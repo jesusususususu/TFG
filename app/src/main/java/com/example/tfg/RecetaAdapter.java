@@ -1,45 +1,95 @@
 package com.example.tfg;
 
-import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.ViewHolder> {
+public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaViewHolder> {
 
-    private List<Receta> listaRecetas;
-    private Context context;
+    private final List<Receta> listaRecetas;
 
-    public RecetaAdapter(List<Receta> listaRecetas, Context context) {
+    public RecetaAdapter(List<Receta> listaRecetas) {
         this.listaRecetas = listaRecetas;
-        this.context = context;
+    }
+
+    @NonNull
+    @Override
+    public RecetaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_receta, parent, false);
+        return new RecetaViewHolder(view);
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_receta, parent, false);
-        return new ViewHolder(view);
-    }
-
-    @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull RecetaViewHolder holder, int position) {
         Receta receta = listaRecetas.get(position);
 
-        holder.nombre.setText(receta.getNombre());
-        holder.tiempo.setText(receta.getTiempoPreparacion() + " min");
-        holder.imagen.setImageResource(receta.getImagenResurce());
+        holder.txtNombre.setText(receta.getNombre());
+        holder.txtTiempo.setText("⏱️ " + receta.getTiempoPreparacion() + " min");
+        holder.imgReceta.setImageResource(receta.getImagenResurce());
 
+        // Algoritmo para calcular las coincidencias con Room y colorear la etiqueta
+        AppDatabase db = AppDatabase.getInstance(holder.itemView.getContext());
+
+        // Obtenemos los ingredientes actuales de la base de datos
+        List<IngredienteAlmacen> almacen = db.ingredienteDao().obtenerTodo();
+
+        Map<String, Double> almacenMap = new HashMap<>();
+
+        for (IngredienteAlmacen i : almacen) {
+            if (i.getNombre() != null) {
+                almacenMap.put(
+                        i.getNombre().toLowerCase().trim(),
+                        (double) i.getCantidad()
+                );
+            }
+        }
+
+        int totalRequisitos = receta.getMapaIngredientes().size();
+        int ingredientesCompletos = 0;
+        int ingredientesParciales = 0;
+
+        for (Map.Entry<String, Double> req : receta.getMapaIngredientes().entrySet()) {
+            String nombreReq = req.getKey();
+            double cantidadNecesaria = req.getValue();
+
+            if (almacenMap.containsKey(nombreReq)) {
+                if (almacenMap.get(nombreReq) >= cantidadNecesaria) {
+                    ingredientesCompletos++;
+                } else {
+                    ingredientesParciales++;
+                }
+            }
+        }
+
+        // Aplicamos los textos y colores exactos que propusimos
+        if (totalRequisitos == 0) {
+            holder.txtEstadoIngredientes.setText("● Sin requisitos especificados");
+            holder.txtEstadoIngredientes.setTextColor(Color.parseColor("#757575")); // Gris
+        } else if (ingredientesCompletos == totalRequisitos) {
+            holder.txtEstadoIngredientes.setText("● ¡Puedes cocinarla ya!");
+            holder.txtEstadoIngredientes.setTextColor(Color.parseColor("#4CAF50")); // Verde
+        } else if (ingredientesCompletos > 0 || ingredientesParciales > 0) {
+            holder.txtEstadoIngredientes.setText("● Te faltan ingredientes o cantidad");
+            holder.txtEstadoIngredientes.setTextColor(Color.parseColor("#FF9800")); // Naranja
+        } else {
+            holder.txtEstadoIngredientes.setText("● Sin ingredientes en el almacén");
+            holder.txtEstadoIngredientes.setTextColor(Color.parseColor("#F44336")); // Rojo
+        }
+
+        // Clic en la tarjeta para abrir la actividad de detalles de la receta
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, DetalleRecetaActivity.class);
+            Intent intent = new Intent(holder.itemView.getContext(), DetalleRecetaActivity.class);
             intent.putExtra("receta", receta);
-            context.startActivity(intent);
+            holder.itemView.getContext().startActivity(intent);
         });
     }
 
@@ -48,17 +98,16 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.ViewHolder
         return listaRecetas.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class RecetaViewHolder extends RecyclerView.ViewHolder {
+        TextView txtNombre, txtTiempo, txtEstadoIngredientes;
+        ImageView imgReceta;
 
-        TextView nombre, tiempo;
-        ImageView imagen;
-
-        public ViewHolder(View itemView) {
+        public RecetaViewHolder(@NonNull View itemView) {
             super(itemView);
-
-            nombre = itemView.findViewById(R.id.txtNombre);
-            tiempo = itemView.findViewById(R.id.txtTiempo);
-            imagen = itemView.findViewById(R.id.imgReceta);
+            txtNombre = itemView.findViewById(R.id.txtNombre);
+            txtTiempo = itemView.findViewById(R.id.txtTiempo);
+            txtEstadoIngredientes = itemView.findViewById(R.id.txtEstadoIngredientes);
+            imgReceta = itemView.findViewById(R.id.imgReceta);
         }
     }
 }

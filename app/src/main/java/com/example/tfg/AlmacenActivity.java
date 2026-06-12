@@ -8,6 +8,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -23,7 +24,7 @@ public class AlmacenActivity extends AppCompatActivity {
     private IngredienteAdapter adapter;
     private List<IngredienteAlmacen> listaIngredientes = new ArrayList<>();
 
-
+    // Optimizacion TFG: Un único pool de hilos para evitar fugas de memoria
     private final ExecutorService databaseExecutor = Executors.newSingleThreadExecutor();
 
     @Override
@@ -31,8 +32,9 @@ public class AlmacenActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_almacen);
 
-
-        db = AppDatabase.getInstance(this);
+        db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "base-recetas")
+                .fallbackToDestructiveMigration()
+                .build();
 
         etNombre = findViewById(R.id.etNombre);
         etCantidad = findViewById(R.id.etCantidad);
@@ -71,8 +73,11 @@ public class AlmacenActivity extends AppCompatActivity {
             if (!nombre.isEmpty() && !cantStr.isEmpty()) {
                 int cantidad = Integer.parseInt(cantStr);
                 databaseExecutor.execute(() -> {
-
+                    // CAMBIO: Usa un icono genérico de ingrediente/despensa, no la tortilla
                     int imagenPorDefecto = R.drawable.ic_ingrediente_generic;
+
+                    // Si no tienes ic_ingrediente_generic, pon temporalmente un icono de Android del sistema:
+                    // int imagenPorDefecto = android.R.drawable.ic_menu_report_image;
 
                     IngredienteAlmacen nuevo = new IngredienteAlmacen(nombre, cantidad, unidad, imagenPorDefecto);
                     db.ingredienteDao().insertar(nuevo);

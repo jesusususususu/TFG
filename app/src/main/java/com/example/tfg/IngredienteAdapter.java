@@ -16,17 +16,17 @@ public class IngredienteAdapter extends RecyclerView.Adapter<IngredienteAdapter.
     private List<IngredienteAlmacen> listaIngredientes;
     private OnLongClickListener longClickListener;
 
-
+    // 1. Interfaz para el clic largo
     public interface OnLongClickListener {
         void onLongClick(IngredienteAlmacen ingrediente);
     }
 
-
+    // 2. Método para asignar el listener desde la Activity
     public void setOnLongClickListener(OnLongClickListener listener) {
         this.longClickListener = listener;
     }
 
-
+    // 3. Constructor
     public IngredienteAdapter(List<IngredienteAlmacen> listaIngredientes) {
         this.listaIngredientes = listaIngredientes;
     }
@@ -42,17 +42,17 @@ public class IngredienteAdapter extends RecyclerView.Adapter<IngredienteAdapter.
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         IngredienteAlmacen item = listaIngredientes.get(position);
 
-
+        // Ponemos el nombre
         holder.tvNombre.setText(item.getNombre());
 
-
+        // Combinamos Cantidad y Unidad (ej: "500 Gramos")
         String infoCantidad = item.getCantidad() + " " + item.getUnidad();
         holder.tvCantidadUnidad.setText(infoCantidad);
 
-
+        // Imagen
         holder.ivFoto.setImageResource(item.getImagenResurce());
 
-
+        // Evento de clic largo para borrar
         holder.itemView.setOnLongClickListener(v -> {
             if (longClickListener != null) {
                 longClickListener.onLongClick(item);
@@ -66,13 +66,13 @@ public class IngredienteAdapter extends RecyclerView.Adapter<IngredienteAdapter.
         return (listaIngredientes != null) ? listaIngredientes.size() : 0;
     }
 
-
+    // Método para refrescar la lista
     public void setIngredientes(List<IngredienteAlmacen> nuevosIngredientes) {
         this.listaIngredientes = nuevosIngredientes;
         notifyDataSetChanged();
     }
 
-
+    // 4. Clase ViewHolder corregida con tus IDs del XML
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvNombre, tvCantidadUnidad;
         ImageView ivFoto;
