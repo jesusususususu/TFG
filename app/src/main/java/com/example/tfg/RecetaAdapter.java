@@ -1,3 +1,5 @@
+
+
 package com.example.tfg;
 
 import android.content.Intent;
@@ -95,7 +97,7 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
 
     @Override
     public int getItemCount() {
-        return listaRecetas.size();
+        return listaRecetas != null ? listaRecetas.size() : 0;
     }
 
     public static class RecetaViewHolder extends RecyclerView.ViewHolder {
@@ -111,3 +113,6 @@ public class RecetaAdapter extends RecyclerView.Adapter<RecetaAdapter.RecetaView
         }
     }
 }
+
+
+

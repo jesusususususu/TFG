@@ -1,5 +1,7 @@
+
 package com.example.tfg;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -10,6 +12,7 @@ public class DetalleRecetaActivity extends AppCompatActivity {
     private TextView nombre, ingredientes, pasos, tiempo;
     private ImageView imagen;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

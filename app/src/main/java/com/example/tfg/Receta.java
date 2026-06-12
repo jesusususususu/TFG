@@ -1,9 +1,13 @@
+
 package com.example.tfg;
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+@Entity(tableName = "recetas")
 public class Receta implements Serializable {
     private String nombre;
     private String ingredientesTexto;
@@ -16,6 +20,7 @@ public class Receta implements Serializable {
         this.nombre = nombre;
         this.ingredientesTexto = ingredientesTexto;
         this.pasos = pasos;
+        if ( tiempoPreparacion<=0) throw new RuntimeException("el tiempo no puede ser negativo");
         this.tiempoPreparacion = tiempoPreparacion;
         this.imagenResource = imagenResource;
         this.mapaIngredientes = new HashMap<>();
@@ -29,6 +34,8 @@ public class Receta implements Serializable {
     public String getNombre() { return nombre; }
     public String getIngredientes() { return ingredientesTexto; }
     public String getPasos() { return pasos; }
+    public void setPasos(String pasos) { this.pasos = pasos; }
+
     public int getTiempoPreparacion() { return tiempoPreparacion; }
 
     // Fíjate aquí: Añadida la "e" para que se lea Resource
