@@ -85,3 +85,7 @@ public class IngredienteAdapter extends RecyclerView.Adapter<IngredienteAdapter.
         }
     }
 }
+
+
+
+
